@@ -11,7 +11,10 @@ DB_PORT = os.getenv("DB_PORT", "3306")
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = quote_plus(os.getenv("DB_PASSWORD", ""))
 DB_NAME = os.getenv("DB_NAME", "defaultdb")
-DB_CA_PATH = os.getenv("DB_CA_PATH", "ca.pem")
+
+# Detecta automáticamente si está en Render (/etc/secrets/) o en tu PC local ("ca.pem")
+default_ca = "/etc/secrets/ca.pem" if os.path.exists("/etc/secrets/ca.pem") else "ca.pem"
+DB_CA_PATH = os.getenv("DB_CA_PATH", default_ca)
 
 DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
