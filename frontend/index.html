@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MF Barber Studio — Neiva, Huila</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --rojo: #A71925;
+            --rojo-hover: #C51F2C;
+            --negro: #080808;
+            --navbar: #0D0D0D;
+            --card: #151515;
+            --texto: #F5F5F5;
+            --texto-sec: #A6A6A6;
+            --borde: #292929;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:var(--negro);color:var(--texto);font-family:'Rajdhani',sans-serif;overflow-x:hidden; }
+        ::-webkit-scrollbar { width:5px; }
+        ::-webkit-scrollbar-track { background:var(--negro); }
+        ::-webkit-scrollbar-thumb { background:var(--rojo);border-radius:3px; }
+        .navbar { background:var(--navbar);border-bottom:1px solid var(--borde);padding:1rem 2rem;position:sticky;top:0;z-index:999;transition:all 0.3s; }
+        .navbar-brand { display:flex;align-items:center;gap:12px;text-decoration:none; }
+        .navbar-brand img { height:45px;filter:invert(1); }
+        .navbar-brand span { font-family:'Bebas Neue';font-size:1.6rem;letter-spacing:4px;color:var(--texto); }
+        .nav-btn-login { background:transparent;border:1px solid var(--rojo);color:var(--texto);font-family:'Oswald';letter-spacing:2px;padding:8px 20px;border-radius:4px;text-decoration:none;transition:all 0.3s;margin-right:10px; }
+        .nav-btn-login:hover { background:var(--rojo);color:#fff; }
+        .nav-btn-registro { background:var(--rojo);border:1px solid var(--rojo);color:#fff;font-family:'Oswald';letter-spacing:2px;padding:8px 20px;border-radius:4px;text-decoration:none;transition:all 0.3s; }
+        .nav-btn-registro:hover { background:var(--rojo-hover);color:#fff;transform:translateY(-1px); }
+        .navbar-toggler { border-color:var(--rojo); }
+        .navbar-toggler-icon { filter:invert(1); }
+        .hero { min-height:100vh;position:relative;display:flex;align-items:center;justify-content:center;text-align:center;background:linear-gradient(rgba(8,8,8,0.70),rgba(8,8,8,0.75)),url('img/fondo-hero.jpg') center/cover no-repeat; }
+        .hero-content { position:relative;z-index:2;padding:2rem; }
+        .hero-studio { font-family:'Oswald';letter-spacing:8px;color:var(--rojo);font-size:13px;font-weight:300;margin-bottom:3px; }
+        .hero-location { font-family:'Oswald';letter-spacing:5px;color:var(--texto-sec);font-size:12px;margin-bottom:20px; }
+        .hero-title { font-family:'Bebas Neue';font-size:clamp(70px,12vw,150px);line-height:0.9;letter-spacing:8px;color:var(--texto);margin-bottom:10px; }
+        .hero-subtitle { font-family:'Bebas Neue';font-size:clamp(22px,4vw,52px);letter-spacing:10px;color:var(--texto);margin-bottom:20px; }
+        .hero-subtitle span { color:var(--rojo); }
+        .hero-info { color:var(--texto-sec);font-family:'Oswald';font-size:13px;letter-spacing:3px;margin-bottom:8px; }
+        .hero-desc { color:var(--texto-sec);font-family:'Rajdhani';font-size:1rem;margin-bottom:2.5rem;line-height:1.6;max-width:550px;margin-left:auto;margin-right:auto; }
+        .btn-hero-primary { background:var(--rojo);color:#fff;font-family:'Oswald';letter-spacing:3px;padding:14px 35px;border:none;border-radius:4px;text-decoration:none;font-size:15px;transition:all 0.3s;display:inline-flex;align-items:center;gap:8px; }
+        .btn-hero-primary:hover { background:var(--rojo-hover);color:#fff;transform:translateY(-2px);box-shadow:0 8px 25px rgba(167,25,37,0.4); }
+        .btn-hero-secondary { background:transparent;color:#fff;font-family:'Oswald';letter-spacing:3px;padding:14px 35px;border:1px solid var(--rojo);border-radius:4px;text-decoration:none;font-size:15px;transition:all 0.3s;display:inline-flex;align-items:center;gap:8px; }
+        .btn-hero-secondary:hover { background:var(--rojo);color:#fff;transform:translateY(-2px); }
+        .red-line { width:60px;height:3px;background:var(--rojo);margin:12px auto; }
+        .features { background:var(--card);border-top:1px solid var(--borde);border-bottom:1px solid var(--borde);padding:4rem 0; }
+        .feature-item { text-align:center;padding:2rem 1.5rem;border-right:1px solid var(--borde); }
+        .feature-item:last-child { border-right:none; }
+        .feature-icon { font-size:2.5rem;color:var(--rojo);margin-bottom:1rem; }
+        .feature-title { font-family:'Oswald';letter-spacing:3px;font-size:1.1rem;color:var(--texto);margin-bottom:8px; }
+        .feature-desc { color:var(--texto-sec);font-size:0.95rem;line-height:1.5; }
+        .section-title { font-family:'Bebas Neue';font-size:2.5rem;letter-spacing:5px;color:var(--texto); }
+        .corte-card { background:var(--card);border:1px solid var(--borde);border-radius:8px;overflow:hidden;transition:all 0.3s; }
+        .corte-card:hover { border-color:var(--rojo);transform:translateY(-5px);box-shadow:0 15px 40px rgba(167,25,37,0.2); }
+        .corte-card img { width:100%;height:200px;object-fit:cover;transition:all 0.3s; }
+        .corte-card:hover img { transform:scale(1.05); }
+        .corte-card-body { padding:1rem;text-align:center; }
+        .corte-nombre { font-family:'Oswald';color:var(--texto);font-size:13px;margin-bottom:5px; }
+        .corte-precio { font-family:'Bebas Neue';font-size:1.8rem;color:var(--rojo);margin-bottom:10px; }
+        .btn-reservar { background:var(--rojo);color:#fff;font-family:'Oswald';letter-spacing:2px;padding:8px 20px;border:none;border-radius:4px;width:100%;transition:all 0.3s;text-decoration:none;display:block;cursor:pointer; }
+        .btn-reservar:hover { background:var(--rojo-hover);color:#fff; }
+        .ubicacion-bar { background:var(--rojo);padding:12px;text-align:center;font-family:'Oswald';letter-spacing:5px;font-size:13px;color:#fff; }
+        footer { background:var(--navbar);border-top:1px solid var(--borde);padding:20px;text-align:center;color:var(--texto-sec);font-family:'Oswald';letter-spacing:2px;font-size:13px; }
+        footer span { color:var(--rojo); }
+        .fade-up { opacity:0;transform:translateY(30px);transition:all 0.6s ease; }
+        .fade-up.visible { opacity:1;transform:translateY(0); }
+        .mapa-info-card { background:#080808;border:1px solid #292929;border-radius:8px;padding:1.5rem; }
+        .mapa-info-row { display:flex;align-items:center;gap:12px;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid #292929; }
+        .mapa-info-row:last-child { border-bottom:none;margin-bottom:0;padding-bottom:0; }
+        .mapa-info-label { font-family:'Oswald';color:var(--rojo);font-size:11px;letter-spacing:3px;margin:0; }
+        .mapa-info-value { font-family:'Rajdhani';color:var(--texto);margin:0; }
+        @media (max-width:768px) {
+            .feature-item { border-right:none;border-bottom:1px solid var(--borde); }
+            .feature-item:last-child { border-bottom:none; }
+            .hero-buttons { flex-direction:column;align-items:center; }
+            .btn-hero-primary,.btn-hero-secondary { width:100%;justify-content:center; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="index.html">
+            <img src="img/logo.jpg" alt="MF Barber">
+            <span>MF BARBER</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navMenu">
+            <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">
+                <a href="login.html" class="nav-btn-login">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>Iniciar Sesion
+                </a>
+                <a href="registro.html" class="nav-btn-registro">
+                    <i class="bi bi-person-plus me-1"></i>Registrarse
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-content">
+        <p class="hero-studio">MF BARBER STUDIO</p>
+        <p class="hero-location">
+            <i class="bi bi-geo-alt-fill me-1" style="color:var(--rojo);"></i>
+            GUALANDAY · NEIVA · HUILA · COLOMBIA
+        </p>
+        <h1 class="hero-title">MF<br>BARBER</h1>
+        <p class="hero-subtitle">ESTILO QUE <span>HABLA</span></p>
+        <p class="hero-info">
+            <i class="bi bi-scissors me-1" style="color:var(--rojo);"></i>Barbería
+            &nbsp;·&nbsp;
+            <i class="bi bi-clock me-1" style="color:var(--rojo);"></i>Abierto hasta las 20:30
+        </p>
+        <p class="hero-desc">
+            MF Barber Studio se distingue por ofrecer un servicio de barbería excepcional en Neiva, combinando técnicas de corte de cabello con un enfoque en la perfección de detalles como la perfilación de cejas. Con opciones que van desde cortes básicos hasta servicios más avanzados.
+        </p>
+        <div class="hero-buttons d-flex gap-3 justify-content-center flex-wrap">
+            <a href="registro.html" class="btn-hero-primary">
+                <i class="bi bi-calendar-check"></i>Reservar tu Cita
+            </a>
+            <a href="login.html" class="btn-hero-secondary">
+                <i class="bi bi-box-arrow-in-right"></i>Iniciar Sesion
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- CARACTERÍSTICAS -->
+<section class="features">
+    <div class="container">
+        <div class="row g-0">
+            <div class="col-md-4 feature-item fade-up">
+                <i class="bi bi-scissors feature-icon"></i>
+                <h5 class="feature-title">CORTES DE CALIDAD</h5>
+                <p class="feature-desc">Estilo y precision en cada detalle. Cada corte es una obra de arte.</p>
+            </div>
+            <div class="col-md-4 feature-item fade-up">
+                <i class="bi bi-award feature-icon"></i>
+                <h5 class="feature-title">PRECISION Y DETALLE</h5>
+                <p class="feature-desc">Perfeccion en cada corte, siempre. La excelencia es nuestro estandar.</p>
+            </div>
+            <div class="col-md-4 feature-item fade-up">
+                <i class="bi bi-person-check feature-icon"></i>
+                <h5 class="feature-title">ESTILO QUE TE REPRESENTA</h5>
+                <p class="feature-desc">Cortes que hablan de ti, sin decir una palabra.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CORTES -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5 fade-up">
+            <h2 class="section-title">Nuestros Cortes</h2>
+            <div class="red-line"></div>
+            <p style="color:var(--texto-sec);font-family:'Oswald';letter-spacing:3px;font-size:13px;">TODOS LOS ESTILOS A $20.000</p>
+        </div>
+        <div class="row g-4" id="serviciosHome"></div>
+        <div class="text-center mt-4">
+            <a href="registro.html" class="btn-hero-secondary" style="display:inline-flex;">
+                Ver todos y reservar
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- NUESTROS BARBEROS -->
+<section class="py-5" style="background:var(--card);border-top:1px solid var(--borde);">
+    <div class="container">
+        <div class="text-center mb-5 fade-up">
+            <h2 class="section-title">Nuestros Barberos</h2>
+            <div class="red-line"></div>
+            <p style="color:var(--texto-sec);font-family:'Oswald';letter-spacing:3px;font-size:13px;">PROFESIONALES A TU SERVICIO</p>
+        </div>
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4">
+                <div style="background:#080808;border:1px solid #292929;border-radius:8px;padding:2rem;text-align:center;transition:all 0.3s;"
+                     onmouseover="this.style.borderColor='#A71925'"
+                     onmouseout="this.style.borderColor='#292929'">
+                    <img src="img/james.jpg"
+                         style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid #A71925;margin-bottom:1rem;"
+                         onerror="this.src='https://via.placeholder.com/120x120/151515/A71925?text=J'">
+                    <h4 style="font-family:'Bebas Neue';letter-spacing:3px;color:#F5F5F5;font-size:1.5rem;margin-bottom:5px;">James Mauricio</h4>
+                    <p style="font-family:'Oswald';color:#A71925;letter-spacing:2px;font-size:12px;margin-bottom:10px;">FUNDADOR · BARBERO PRINCIPAL</p>
+                    <p style="color:#A6A6A6;font-family:'Rajdhani';font-size:14px;">Especialista en Fades, Diseños y Degradados con más de 7 años de experiencia.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div style="background:#080808;border:1px solid #292929;border-radius:8px;padding:2rem;text-align:center;transition:all 0.3s;"
+                     onmouseover="this.style.borderColor='#A71925'"
+                     onmouseout="this.style.borderColor='#292929'">
+                    <img src="img/jordy.jpg"
+                         style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid #A71925;margin-bottom:1rem;"
+                         onerror="this.src='https://via.placeholder.com/120x120/151515/A71925?text=J'">
+                    <h4 style="font-family:'Bebas Neue';letter-spacing:3px;color:#F5F5F5;font-size:1.5rem;margin-bottom:5px;">Jordy</h4>
+                    <p style="font-family:'Oswald';color:#A71925;letter-spacing:2px;font-size:12px;margin-bottom:10px;">BARBERO</p>
+                    <p style="color:#A6A6A6;font-family:'Rajdhani';font-size:14px;">Especialista en Cortes Modernos y Tendencias actuales.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- STATS -->
+<section style="padding:3rem 0;border-top:1px solid var(--borde);border-bottom:1px solid var(--borde);">
+    <div class="container">
+        <div class="row text-center g-3">
+            <div class="col-6 col-md-3">
+                <h2 style="font-family:'Bebas Neue';font-size:3rem;color:var(--rojo);">7+</h2>
+                <p style="font-family:'Oswald';color:var(--texto-sec);letter-spacing:2px;font-size:12px;">ANOS DE EXPERIENCIA</p>
+            </div>
+            <div class="col-6 col-md-3">
+                <h2 style="font-family:'Bebas Neue';font-size:3rem;color:var(--rojo);">12</h2>
+                <p style="font-family:'Oswald';color:var(--texto-sec);letter-spacing:2px;font-size:12px;">ESTILOS DE CORTE</p>
+            </div>
+            <div class="col-6 col-md-3">
+                <h2 style="font-family:'Bebas Neue';font-size:3rem;color:var(--rojo);">500+</h2>
+                <p style="font-family:'Oswald';color:var(--texto-sec);letter-spacing:2px;font-size:12px;">CLIENTES SATISFECHOS</p>
+            </div>
+            <div class="col-6 col-md-3">
+                <h2 style="font-family:'Bebas Neue';font-size:3rem;color:var(--rojo);">$17K</h2>
+                <p style="font-family:'Oswald';color:var(--texto-sec);letter-spacing:2px;font-size:12px;">PRECIO UNICO</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section style="padding:4rem 0;text-align:center;">
+    <div class="container">
+        <h2 style="font-family:'Bebas Neue';font-size:2.5rem;letter-spacing:4px;color:var(--texto);">Listo para tu <span style="color:var(--rojo);">mejor corte?</span></h2>
+        <div class="red-line"></div>
+        <p style="color:var(--texto-sec);margin-bottom:2rem;font-family:'Rajdhani';">Reserva tu cita ahora y experimenta la diferencia</p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="registro.html" class="btn-hero-primary">
+                <i class="bi bi-calendar-check"></i>Reservar Ahora
+            </a>
+            <a href="https://wa.me/573126514547" target="_blank"
+               style="background:#25D366;color:#fff;font-family:'Oswald';letter-spacing:2px;padding:14px 25px;border-radius:4px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all 0.3s;"
+               onmouseover="this.style.background='#1da851'"
+               onmouseout="this.style.background='#25D366'">
+                <i class="bi bi-whatsapp"></i>WhatsApp
+            </a>
+            <a href="https://www.instagram.com/james_barbero_" target="_blank"
+               style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;font-family:'Oswald';letter-spacing:2px;padding:14px 25px;border-radius:4px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all 0.3s;"
+               onmouseover="this.style.opacity='0.85'"
+               onmouseout="this.style.opacity='1'">
+                <i class="bi bi-instagram"></i>Instagram
+            </a>
+            <a href="https://www.tiktok.com/@mf.barber.studio" target="_blank"
+               style="background:#000;border:1px solid #333;color:#fff;font-family:'Oswald';letter-spacing:2px;padding:14px 25px;border-radius:4px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all 0.3s;"
+               onmouseover="this.style.borderColor='#A71925'"
+               onmouseout="this.style.borderColor='#333'">
+                <i class="bi bi-tiktok"></i>TikTok
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- UBICACIÓN CON MAPA -->
+<section style="padding:4rem 0;background:var(--card);border-top:1px solid var(--borde);">
+    <div class="container">
+        <div class="text-center mb-4 fade-up">
+            <h2 class="section-title">Encuéntranos</h2>
+            <div class="red-line"></div>
+        </div>
+        <div class="row g-4 align-items-center">
+            <div class="col-md-4">
+                <div class="mapa-info-card">
+                    <div class="mapa-info-row">
+                        <i class="bi bi-geo-alt-fill" style="color:var(--rojo);font-size:1.5rem;"></i>
+                        <div>
+                            <p class="mapa-info-label">DIRECCION</p>
+                            <p class="mapa-info-value">Cra 17 #37-16, Barrio Gualanday<br>Neiva, Huila, Colombia</p>
+                        </div>
+                    </div>
+                    <div class="mapa-info-row">
+                        <i class="bi bi-clock-fill" style="color:var(--rojo);font-size:1.5rem;"></i>
+                        <div>
+                            <p class="mapa-info-label">HORARIO</p>
+                            <p class="mapa-info-value">Lunes – Sábado: 10:15 AM – 8:00 PM<br>Domingo: 10:00 AM – 8:00 PM</p>
+                        </div>
+                    </div>
+                    <div class="mapa-info-row">
+                        <i class="bi bi-telephone-fill" style="color:var(--rojo);font-size:1.5rem;"></i>
+                        <div>
+                            <p class="mapa-info-label">CONTACTO</p>
+                            <p class="mapa-info-value">+57 312 651 4547</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div style="border:1px solid #292929;border-radius:8px;overflow:hidden;height:350px;">
+                    <iframe
+                        src="https://www.google.com/maps?q=Carrera+17+37-15,+Neiva,+Huila,+Colombia&output=embed"
+                        width="100%" height="100%"
+                        style="border:0;filter:grayscale(80%) invert(10%);"
+                        allowfullscreen="" loading="lazy">
+                    </iframe>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="https://maps.google.com/?q=Carrera+17+37-15,+Neiva,+Huila,+Colombia" target="_blank"
+                       style="background:#A71925;color:#fff;font-family:'Oswald';letter-spacing:2px;padding:10px 25px;border-radius:4px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all 0.3s;"
+                       onmouseover="this.style.background='#C51F2C'"
+                       onmouseout="this.style.background='#A71925'">
+                        <i class="bi bi-map"></i>Abrir en Google Maps
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="ubicacion-bar">
+    <i class="bi bi-geo-alt-fill me-2"></i>
+    NEIVA · HUILA · COLOMBIA · CRA 17 #37-16 BARRIO GUALANDAY
+</div>
+
+<!-- FOOTER -->
+<footer>
+    <p>© 2026 <span>MF Barber Studio</span> · Todos los derechos reservados</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/config.js"></script>
+<script>
+async function cargarServiciosHome() {
+    try {
+        const servicios = await apiRequest('GET', '/servicios/');
+        document.getElementById('serviciosHome').innerHTML = servicios.slice(0,6).map(s => `
+            <div class="col-md-4">
+                <div class="corte-card">
+                    <div style="overflow:hidden;">
+                        <img src="img/${s.imagen}"
+                             onerror="this.src='https://via.placeholder.com/400x200/151515/A71925?text=MF+BARBER'"
+                             alt="${s.nombre}">
+                    </div>
+                    <div class="corte-card-body">
+                        <p class="corte-nombre">${s.nombre}</p>
+                        <p class="corte-precio">$${Number(s.precio).toLocaleString()}</p>
+                        <a href="registro.html" class="btn-reservar">Reservar</a>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } catch(e) {
+        console.log('Backend no disponible');
+    }
+}
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+cargarServiciosHome();
+</script>
+</body>
+</html>

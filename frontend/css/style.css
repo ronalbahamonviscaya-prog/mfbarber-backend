@@ -1,0 +1,90 @@
+:root {
+    --rojo: #A71925;
+    --rojo-hover: #C51F2C;
+    --negro: #080808;
+    --navbar: #0D0D0D;
+    --card: #151515;
+    --texto: #F5F5F5;
+    --texto-sec: #A6A6A6;
+    --borde: #292929;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background: var(--negro);
+    color: var(--texto);
+    font-family: 'Rajdhani', sans-serif;
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--negro); }
+::-webkit-scrollbar-thumb { background: var(--rojo); border-radius: 3px; }
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    color: var(--texto);
+    transition: all 0.3s;
+}
+
+.card:hover {
+    border-color: var(--rojo);
+    box-shadow: 0 10px 30px rgba(167,25,37,0.15);
+}
+
+.form-control, .form-select {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid var(--borde) !important;
+    color: var(--texto) !important;
+    border-radius: 4px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--rojo) !important;
+    box-shadow: 0 0 10px rgba(167,25,37,0.2) !important;
+}
+
+.form-select option { background: var(--card); color: var(--texto); }
+
+.table-dark { background: var(--card) !important; }
+.table-dark th { color: var(--rojo) !important; border-color: var(--borde) !important; }
+.table-dark td { border-color: var(--borde) !important; color: var(--texto); }
+.table-hover tbody tr:hover { background: rgba(167,25,37,0.08) !important; }
+
+.nav-link { color: var(--texto-sec) !important; font-family: 'Oswald'; }
+.nav-link.active { color: var(--texto) !important; border-color: var(--rojo) !important; }
+.nav-link:hover { color: var(--texto) !important; }
+
+.badge { font-family: 'Oswald'; letter-spacing: 1px; }
+
+.btn-outline-light { border-color: var(--borde) !important; }
+.btn-outline-light:hover { background: var(--rojo) !important; border-color: var(--rojo) !important; }
+
+footer {
+    background: var(--navbar);
+    border-top: 1px solid var(--borde);
+    padding: 20px;
+    text-align: center;
+    color: var(--texto-sec);
+    font-family: 'Oswald';
+    letter-spacing: 2px;
+    font-size: 13px;
+}
+
+.alert-success {
+    background: rgba(37,211,102,0.1) !important;
+    border: 1px solid #25D366 !important;
+    color: #25D366 !important;
+}
+
+.alert-danger {
+    background: rgba(167,25,37,0.1) !important;
+    border: 1px solid var(--rojo) !important;
+    color: #ff6b6b !important;
+}
+
+@media (max-width: 768px) {
+    .container { padding: 0 1rem; }
+}

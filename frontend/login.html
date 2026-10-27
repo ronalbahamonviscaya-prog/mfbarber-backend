@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesion — MF Barber Studio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        :root {
+            --rojo:#A71925;--rojo-hover:#C51F2C;--negro:#080808;
+            --navbar:#0D0D0D;--card:#151515;--texto:#F5F5F5;
+            --texto-sec:#A6A6A6;--borde:#292929;
+        }
+        body {
+            background: linear-gradient(rgba(8,8,8,0.75), rgba(8,8,8,0.75)), url('img/fondo-login.jpg') center/cover no-repeat fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar { background:var(--navbar);border-bottom:1px solid var(--borde);padding:1rem 2rem; }
+        .navbar-brand { display:flex;align-items:center;gap:12px;text-decoration:none; }
+        .navbar-brand img { height:40px;filter:invert(1); }
+        .navbar-brand span { font-family:'Bebas Neue';font-size:1.5rem;letter-spacing:4px;color:var(--texto); }
+        .login-wrap { flex:1;display:flex;align-items:center;justify-content:center;padding:2rem; }
+        .login-card { background:rgba(21, 21, 21, 0.95);border:1px solid var(--borde);border-radius:8px;padding:2.5rem;width:100%;max-width:450px;backdrop-filter:blur(5px); }
+        .login-title { font-family:'Bebas Neue';letter-spacing:5px;color:var(--texto);font-size:2rem;text-align:center;margin-bottom:5px; }
+        .login-sub { font-family:'Oswald';color:var(--texto-sec);letter-spacing:3px;font-size:12px;text-align:center;margin-bottom:2rem; }
+        .form-label { font-family:'Oswald';color:var(--texto-sec);font-size:11px;letter-spacing:3px; }
+        .form-control { background:rgba(255,255,255,0.03)!important;border:1px solid var(--borde)!important;color:var(--texto)!important;border-radius:4px;padding:10px 14px; }
+        .form-control:focus { border-color:var(--rojo)!important;box-shadow:0 0 10px rgba(167,25,37,0.2)!important; }
+        .eye-btn { background:rgba(255,255,255,0.03);border:1px solid var(--borde);color:var(--texto-sec);border-radius:0 4px 4px 0; }
+        .eye-btn:hover { color:var(--rojo); }
+        .btn-login { background:var(--rojo);color:#fff;font-family:'Oswald';letter-spacing:3px;padding:12px;border:none;border-radius:4px;width:100%;font-size:15px;transition:all 0.3s; }
+        .btn-login:hover { background:var(--rojo-hover);transform:translateY(-1px); }
+        .red-line { width:40px;height:2px;background:var(--rojo);margin:8px auto; }
+        .link-rojo { color:var(--rojo);text-decoration:none; }
+        .link-rojo:hover { color:var(--rojo-hover); }
+        .error-box { background:rgba(167,25,37,0.1);border:1px solid var(--rojo);color:#ff6b6b;border-radius:4px;padding:10px;font-family:'Oswald';font-size:13px; }
+        footer { background:var(--navbar);border-top:1px solid var(--borde);padding:15px;text-align:center;color:var(--texto-sec);font-family:'Oswald';font-size:12px;letter-spacing:2px; }
+        footer span { color:var(--rojo); }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <a class="navbar-brand" href="index.html">
+        <img src="img/logo.jpg" alt="logo">
+        <span>MF BARBER</span>
+    </a>
+</nav>
+
+<div class="login-wrap">
+    <div class="login-card">
+        <h2 class="login-title">MF BARBER STUDIO</h2>
+        <div class="red-line"></div>
+        <p class="login-sub">INICIA SESION</p>
+
+        <form id="loginForm">
+            <div class="mb-3">
+                <label class="form-label">CORREO ELECTRONICO</label>
+                <input type="email" id="email" class="form-control mt-1" placeholder="tu@correo.com" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label">CONTRASENA</label>
+                <div class="input-group mt-1">
+                    <input type="password" id="password" class="form-control" placeholder="Tu contrasena" required>
+                    <button type="button" class="eye-btn btn" onclick="togglePass()">
+                        <i class="bi bi-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="errorLogin" class="error-box mb-3" style="display:none;"></div>
+            <button type="submit" id="btnLogin" class="btn-login">
+                <i class="bi bi-box-arrow-in-right me-2"></i>ENTRAR
+            </button>
+        </form>
+
+        <hr style="border-color:var(--borde);margin:1.5rem 0;">
+        <p style="text-align:center;color:var(--texto-sec);font-family:'Oswald';font-size:13px;letter-spacing:1px;">
+            No tienes cuenta?
+            <a href="registro.html" class="link-rojo ms-1">Registrate aqui</a>
+        </p>
+        <p style="text-align:center;margin-top:8px;">
+            <a href="index.html" class="link-rojo" style="font-family:'Oswald';font-size:12px;letter-spacing:2px;">
+                <i class="bi bi-arrow-left me-1"></i>Volver al inicio
+            </a>
+        </p>
+    </div>
+</div>
+
+<footer>© 2026 <span>MF Barber Studio</span> · Neiva, Huila, Colombia</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script>
+function togglePass() {
+    const input = document.getElementById('password');
+    const icon = document.getElementById('eyeIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('bi-eye','bi-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('bi-eye-slash','bi-eye');
+    }
+}
+</script>
+</body>
+</html>
