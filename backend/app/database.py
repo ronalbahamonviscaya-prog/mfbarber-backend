@@ -12,9 +12,15 @@ DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = quote_plus(os.getenv("DB_PASSWORD", ""))
 DB_NAME = os.getenv("DB_NAME", "defaultdb")
 
-# Detecta automáticamente si está en Render (/etc/secrets/) o en tu PC local ("ca.pem")
-default_ca = "/etc/secrets/ca.pem" if os.path.exists("/etc/secrets/ca.pem") else "ca.pem"
-DB_CA_PATH = os.getenv("DB_CA_PATH", default_ca)
+# Truco: Si existe la variable con el texto del certificado, crea el archivo ca.pem automáticamente al iniciar
+cert_content = os.getenv("DB_CA_CERT")
+ca_path = "ca.pem"
+
+if cert_content and not os.path.exists(ca_path):
+    with open(ca_path, "w") as f:
+        f.write(cert_content)
+
+DB_CA_PATH = os.getenv("DB_CA_PATH", ca_path)
 
 DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
