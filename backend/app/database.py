@@ -1,4 +1,5 @@
 import os
+import tempfile
 from urllib.parse import quote_plus
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -12,21 +13,21 @@ DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = quote_plus(os.getenv("DB_PASSWORD", ""))
 DB_NAME = os.getenv("DB_NAME", "defaultdb")
 
-# Truco: Si existe la variable con el texto del certificado, crea el archivo ca.pem automáticamente al iniciar
+# Si el certificado viene como variable (Hostless/Render), lo guarda en /tmp,
+# que es escribible. En tu PC usa el ca.pem local.
 cert_content = os.getenv("DB_CA_CERT")
-ca_path = "ca.pem"
-
-if cert_content and not os.path.exists(ca_path):
+if cert_content:
+    ca_path = os.path.join(tempfile.gettempdir(), "ca.pem")
     with open(ca_path, "w") as f:
         f.write(cert_content)
-
-DB_CA_PATH = os.getenv("DB_CA_PATH", ca_path)
+else:
+    ca_path = os.getenv("DB_CA_PATH", "ca.pem")
 
 DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"ssl": {"ca": DB_CA_PATH}},
+    connect_args={"ssl": {"ca": ca_path}},
     pool_pre_ping=True,
 )
 
