@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8000';
+const API_URL = 'https://mfbarber-backend.hostless.app';
 
 async function apiRequest(method, endpoint, data = null, token = null) {
     const headers = {};

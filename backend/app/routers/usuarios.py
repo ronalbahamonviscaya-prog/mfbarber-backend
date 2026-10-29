@@ -52,6 +52,14 @@ def login(datos: LoginDatos, db: Session = Depends(get_db)):
 def listar(db: Session = Depends(get_db)):
     return db.query(Usuario).all()
 
+# IMPORTANTE: esta ruta debe ir ANTES de "/{id}"
+@router.get("/barberos", response_model=list[UsuarioRespuesta])
+def listar_barberos(db: Session = Depends(get_db)):
+    return db.query(Usuario).filter(
+        Usuario.rol == "barbero",
+        Usuario.activo == True
+    ).all()
+
 @router.get("/{id}", response_model=UsuarioRespuesta)
 def obtener(id: int, db: Session = Depends(get_db)):
     usuario = db.query(Usuario).filter(Usuario.id == id).first()
