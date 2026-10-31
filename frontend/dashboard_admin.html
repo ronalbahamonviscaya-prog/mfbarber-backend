@@ -147,7 +147,8 @@
         </div>
 
         <div id="formBarbero" style="display:none;background:var(--card);border:1px solid var(--borde);border-radius:8px;padding:1.5rem;" class="mb-4">
-            <h5 style="font-family:'Bebas Neue';letter-spacing:3px;color:var(--texto);margin-bottom:1rem;">Nuevo Barbero</h5>
+            <h5 id="tituloFormBarbero" style="font-family:'Bebas Neue';letter-spacing:3px;color:var(--texto);margin-bottom:1rem;">Nuevo Barbero</h5>
+            <input type="hidden" id="barberoId">
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label">NOMBRE *</label>
@@ -164,6 +165,10 @@
                 <div class="col-md-6">
                     <label class="form-label">CONTRASEÑA *</label>
                     <input type="password" id="passwordBarbero" class="form-control mt-1">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">FOTO (OPCIONAL)</label>
+                    <input type="file" id="fotoBarbero" accept="image/*" class="form-control mt-1">
                 </div>
                 <div class="col-12 d-flex gap-2">
                     <button onclick="guardarBarbero()" class="btn-rojo"><i class="bi bi-check-lg me-1"></i>Guardar</button>
@@ -320,7 +325,9 @@
 
     /* ---------- BARBEROS ---------- */
     function mostrarFormBarbero() {
-        ['nombreBarbero','emailBarbero','telefonoBarbero','passwordBarbero'].forEach(id => document.getElementById(id).value = '');
+        ['nombreBarbero','emailBarbero','telefonoBarbero','passwordBarbero','barberoId'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('fotoBarbero').value = '';
+        document.getElementById('tituloFormBarbero').textContent = 'Nuevo Barbero';
         document.getElementById('formBarbero').style.display = 'block';
     }
 
@@ -333,13 +340,17 @@
             const barberos = await apiRequest('GET', '/usuarios/barberos');
             document.getElementById('barberosContainer').innerHTML = barberos.map(b => `
                 <div class="col-md-4">
-                    <div class="serv-card">
-                        <img src="${b.foto ? 'img/' + b.foto : 'https://via.placeholder.com/400x150/151515/A71925?text=' + encodeURIComponent(b.nombre)}"
-                             onerror="this.src='https://via.placeholder.com/400x150/151515/A71925?text=MF+BARBER'"
-                             alt="${b.nombre}">
-                        <div class="serv-body">
-                            <p class="serv-nombre">${b.nombre}</p>
-                            <p style="color:var(--texto-sec);font-size:13px;margin-bottom:8px;">${b.email}<br>${b.telefono || ''}</p>
+                    <div class="serv-card text-center" style="padding:1.5rem 1rem;">
+                        <img src="img/${b.foto || 'logo.jpg'}"
+                             onerror="this.onerror=null;this.src='img/logo.jpg'"
+                             alt="${b.nombre}"
+                             style="width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid var(--rojo);background:#0D0D0D;margin-bottom:10px;">
+                        <p class="serv-nombre" style="font-size:16px;">${b.nombre}</p>
+                        <p style="color:var(--texto-sec);font-size:13px;margin-bottom:10px;">${b.email}<br>${b.telefono || ''}</p>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button onclick="editarBarbero(${b.id})" class="btn-borde">
+                                <i class="bi bi-pencil me-1"></i>Editar
+                            </button>
                             <button onclick="eliminarBarbero(${b.id})"
                                     style="background:transparent;border:1px solid #4d1a1a;color:#ff6b6b;font-family:'Oswald';letter-spacing:1px;font-size:12px;padding:6px 12px;border-radius:4px;cursor:pointer;">
                                 <i class="bi bi-trash me-1"></i>Borrar
@@ -351,17 +362,44 @@
         } catch(e) { console.error(e); }
     }
 
+    async function editarBarbero(id) {
+        try {
+            const barberos = await apiRequest('GET', '/usuarios/barberos');
+            const b = barberos.find(x => x.id === id);
+            if (!b) return;
+            document.getElementById('barberoId').value = b.id;
+            document.getElementById('nombreBarbero').value = b.nombre;
+            document.getElementById('emailBarbero').value = b.email;
+            document.getElementById('telefonoBarbero').value = b.telefono || '';
+            document.getElementById('passwordBarbero').value = '';
+            document.getElementById('fotoBarbero').value = '';
+            document.getElementById('tituloFormBarbero').textContent = 'Editar Barbero (deja la contraseña vacía para no cambiarla)';
+            document.getElementById('formBarbero').style.display = 'block';
+            document.getElementById('formBarbero').scrollIntoView({behavior:'smooth'});
+        } catch(e) { alert('Error: ' + e.message); }
+    }
+
     async function guardarBarbero() {
+        const id = document.getElementById('barberoId').value;
         const nombre = document.getElementById('nombreBarbero').value;
         const email = document.getElementById('emailBarbero').value;
         const telefono = document.getElementById('telefonoBarbero').value;
         const password = document.getElementById('passwordBarbero').value;
-        if (!nombre || !email || !password) { alert('Llena los campos obligatorios'); return; }
+        const archivo = document.getElementById('fotoBarbero').files[0];
+        const foto = archivo ? archivo.name : null;
+        if (!nombre || !email || (!id && !password)) { alert('Llena los campos obligatorios'); return; }
         try {
-            await apiRequest('POST', '/usuarios/barberos',
-                { rol: 'barbero', nombre, email, password, telefono, direccion: '' },
-                getToken());
-            alert('Barbero creado');
+            if (id) {
+                await apiRequest('PUT', `/usuarios/barberos/${id}`,
+                    { nombre, email, telefono, foto, password: password || null },
+                    getToken());
+                alert('Barbero actualizado');
+            } else {
+                await apiRequest('POST', '/usuarios/barberos',
+                    { rol: 'barbero', nombre, email, password, telefono, direccion: '', foto },
+                    getToken());
+                alert('Barbero creado');
+            }
             cancelarFormBarbero();
             cargarBarberos();
         } catch(e) { alert('Error: ' + e.message); }

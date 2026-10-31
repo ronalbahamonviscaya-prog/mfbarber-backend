@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Usuario
-from app.schemas import UsuarioCrear, UsuarioRespuesta, LoginDatos, Token
+from app.schemas import UsuarioCrear, UsuarioRespuesta, LoginDatos, Token, BarberoEditar
 from werkzeug.security import generate_password_hash, check_password_hash
 from jose import jwt
 from datetime import datetime, timedelta
@@ -75,6 +75,31 @@ def crear_barbero(datos: UsuarioCrear, db: Session = Depends(get_db)):
         foto=datos.foto
     )
     db.add(barbero)
+    db.commit()
+    db.refresh(barbero)
+    return barbero
+
+@router.put("/barberos/{id}", response_model=UsuarioRespuesta)
+def editar_barbero(id: int, datos: BarberoEditar, db: Session = Depends(get_db)):
+    barbero = db.query(Usuario).filter(
+        Usuario.id == id,
+        Usuario.rol == "barbero"
+    ).first()
+    if not barbero:
+        raise HTTPException(status_code=404, detail="Barbero no encontrado")
+    otro = db.query(Usuario).filter(
+        Usuario.email == datos.email,
+        Usuario.id != id
+    ).first()
+    if otro:
+        raise HTTPException(status_code=400, detail="El email ya esta registrado")
+    barbero.nombre = datos.nombre
+    barbero.email = datos.email
+    barbero.telefono = datos.telefono
+    if datos.foto:
+        barbero.foto = datos.foto
+    if datos.password:
+        barbero.password = generate_password_hash(datos.password)
     db.commit()
     db.refresh(barbero)
     return barbero

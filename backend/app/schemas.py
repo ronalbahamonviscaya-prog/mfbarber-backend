@@ -11,6 +11,13 @@ class UsuarioCrear(BaseModel):
     direccion: Optional[str] = None
     foto: Optional[str] = None
 
+class BarberoEditar(BaseModel):
+    nombre: str
+    email: str
+    telefono: Optional[str] = None
+    foto: Optional[str] = None
+    password: Optional[str] = None
+
 class UsuarioRespuesta(BaseModel):
     id: int
     rol: str
