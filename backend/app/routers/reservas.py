@@ -4,9 +4,13 @@ from sqlalchemy import and_
 from app.database import get_db
 from app.models import Reserva, Usuario
 from app.schemas import ReservaCrear, CambiarEstado
-from datetime import datetime
+from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/reservas", tags=["Reservas"])
+
+def ahora_colombia():
+    # El servidor usa UTC; Colombia es UTC-5 todo el año
+    return datetime.utcnow() - timedelta(hours=5)
 
 def reserva_a_dict(r, db):
     cliente = db.query(Usuario).filter(Usuario.id == r.id_cliente).first()
@@ -28,6 +32,18 @@ def reserva_a_dict(r, db):
 @router.get("/")
 def listar(db: Session = Depends(get_db)):
     return [reserva_a_dict(r, db) for r in db.query(Reserva).all()]
+
+# IMPORTANTE: /ocupadas debe ir ANTES de "/{id}"
+@router.get("/ocupadas")
+def horas_ocupadas(id_barbero: int, fecha: str, db: Session = Depends(get_db)):
+    reservas = db.query(Reserva).filter(
+        and_(
+            Reserva.id_barbero == id_barbero,
+            Reserva.fecha_reserva == fecha,
+            Reserva.estado != "Cancelado"
+        )
+    ).all()
+    return [str(r.hora_reserva)[:5] for r in reservas]
 
 @router.get("/barbero/{id_barbero}")
 def listar_por_barbero(id_barbero: int, db: Session = Depends(get_db)):
@@ -53,7 +69,7 @@ def crear(datos: ReservaCrear, id_cliente: int, id_barbero: int, db: Session = D
     except:
         raise HTTPException(status_code=400, detail="Formato de fecha u hora incorrecto")
 
-    if fecha_hora <= datetime.now():
+    if fecha_hora <= ahora_colombia():
         raise HTTPException(status_code=400, detail="No puedes reservar en una fecha u hora pasada")
 
     reserva_pendiente = db.query(Reserva).filter(
@@ -71,7 +87,7 @@ def crear(datos: ReservaCrear, id_cliente: int, id_barbero: int, db: Session = D
         )
     ).first()
     if conflicto:
-        raise HTTPException(status_code=400, detail="El barbero ya tiene una reserva en ese horario. Elige otra hora.")
+        raise HTTPException(status_code=400, detail="Ese barbero ya tiene una cita a esa hora. Elige otra hora.")
 
     reserva = Reserva(
         id_cliente=id_cliente,

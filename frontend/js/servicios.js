@@ -1,10 +1,24 @@
 const ROJO = '#A71925';
 const ROJO_HOVER = '#C51F2C';
 
-const BARBEROS = [
-    { id: 5, nombre: 'James Mauricio Valencia', especialidad: 'Especialista en Fades y Diseños', foto: 'img/james.jpg' },
-    { id: 15, nombre: 'Jordy', especialidad: 'Especialista en Cortes Modernos', foto: 'img/jordy.jpg' }
-];
+let BARBEROS = [];
+let barberoSeleccionado = null;
+
+// Fecha local (no UTC) en formato YYYY-MM-DD
+function fechaLocal(d = new Date()) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dia = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dia}`;
+}
+
+async function cargarBarberosLista() {
+    try {
+        BARBEROS = await apiRequest('GET', '/usuarios/barberos');
+    } catch (e) {
+        BARBEROS = [];
+    }
+}
 
 async function cargarServicios() {
     try {
@@ -42,22 +56,27 @@ async function cargarServicios() {
     }
 }
 
-function mostrarFormReserva(id_servicio, nombre_servicio) {
+async function mostrarFormReserva(id_servicio, nombre_servicio) {
     const usuario = getUsuario();
     if (!usuario) { window.location.href = 'login.html'; return; }
     const anterior = document.getElementById('modalReserva');
     if (anterior) anterior.remove();
 
-    // Fecha minima hoy y hora minima actual
-    const ahora = new Date();
-    const hoy = ahora.toISOString().split('T')[0];
-    const horaActual = ahora.getHours();
+    barberoSeleccionado = null;
+    await cargarBarberosLista();
+    const hoy = fechaLocal();
 
-    // Filtrar horas disponibles — solo horas futuras
-    const horasDisponibles = [10,11,12,13,14,15,16,17,18,19,20].filter(h => {
-        const fechaInput = document.getElementById ? document.getElementById('fechaReserva') : null;
-        return true; // se filtra dinamicamente al cambiar fecha
-    });
+    const barberosHtml = BARBEROS.length === 0
+        ? '<p style="color:#A6A6A6;font-family:Oswald;grid-column:1/3;">No hay barberos disponibles</p>'
+        : BARBEROS.map(b => `
+            <div onclick="seleccionarBarbero(${b.id})" id="barbero-${b.id}"
+                 style="background:#0D0D0D;border:1px solid #292929;border-radius:6px;padding:12px;text-align:center;cursor:pointer;transition:all 0.3s;">
+                <img src="img/${b.foto || 'logo.jpg'}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;margin-bottom:8px;border:2px solid #292929;background:#0D0D0D;"
+                     onerror="this.onerror=null;this.src='img/logo.jpg'">
+                <p style="font-family:'Oswald';color:#F5F5F5;font-size:12px;margin:0;letter-spacing:1px;">${b.nombre}</p>
+                <p style="font-family:'Rajdhani';color:#A6A6A6;font-size:11px;margin:3px 0 0;">Barbero</p>
+            </div>
+        `).join('');
 
     const modal = document.createElement('div');
     modal.id = 'modalReserva';
@@ -78,15 +97,7 @@ function mostrarFormReserva(id_servicio, nombre_servicio) {
                 <div style="margin-bottom:1.5rem;">
                     <label style="font-family:'Oswald';color:#A6A6A6;font-size:11px;letter-spacing:3px;display:block;margin-bottom:10px;">ELIGE TU BARBERO *</label>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                        ${BARBEROS.map(b => `
-                            <div onclick="seleccionarBarbero(${b.id})" id="barbero-${b.id}"
-                                 style="background:#0D0D0D;border:1px solid #292929;border-radius:6px;padding:12px;text-align:center;cursor:pointer;transition:all 0.3s;">
-                                <img src="${b.foto}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;margin-bottom:8px;border:2px solid #292929;"
-                                     onerror="this.src='https://via.placeholder.com/60/151515/A71925?text=${b.nombre.charAt(0)}'">
-                                <p style="font-family:'Oswald';color:#F5F5F5;font-size:12px;margin:0;letter-spacing:1px;">${b.nombre}</p>
-                                <p style="font-family:'Rajdhani';color:#A6A6A6;font-size:11px;margin:3px 0 0;">${b.especialidad}</p>
-                            </div>
-                        `).join('')}
+                        ${barberosHtml}
                     </div>
                 </div>
 
@@ -101,7 +112,7 @@ function mostrarFormReserva(id_servicio, nombre_servicio) {
                     <label style="font-family:'Oswald';color:#A6A6A6;font-size:11px;letter-spacing:3px;display:block;margin-bottom:5px;">HORA *</label>
                     <select id="horaReserva"
                             style="width:100%;background:#151515;border:1px solid #292929;color:#F5F5F5;border-radius:4px;padding:10px 14px;font-family:'Oswald';">
-                        <option value="">Selecciona una fecha primero</option>
+                        <option value="">Selecciona barbero y fecha primero</option>
                     </select>
                 </div>
 
@@ -125,23 +136,47 @@ function mostrarFormReserva(id_servicio, nombre_servicio) {
     document.body.appendChild(modal);
 }
 
-function actualizarHoras() {
+async function actualizarHoras() {
     const fecha = document.getElementById('fechaReserva').value;
     const select = document.getElementById('horaReserva');
+    if (!barberoSeleccionado) {
+        select.innerHTML = '<option value="">Selecciona un barbero primero</option>';
+        return;
+    }
+    if (!fecha) {
+        select.innerHTML = '<option value="">Selecciona una fecha primero</option>';
+        return;
+    }
+
+    let ocupadas = [];
+    try {
+        ocupadas = await apiRequest('GET', `/reservas/ocupadas?id_barbero=${barberoSeleccionado}&fecha=${fecha}`);
+    } catch (e) {
+        ocupadas = [];
+    }
+
     const ahora = new Date();
-    const hoy = ahora.toISOString().split('T')[0];
+    const hoy = fechaLocal(ahora);
     const horaActual = ahora.getHours();
     const horas = [10,11,12,13,14,15,16,17,18,19,20];
-    select.innerHTML = horas
-        .filter(h => fecha > hoy || (fecha === hoy && h > horaActual + 1))
-        .map(h => `<option value="${String(h).padStart(2,'0')}:00">${h}:00 ${h < 12 ? 'AM' : 'PM'}</option>`)
-        .join('');
-    if (!select.innerHTML) {
-        select.innerHTML = '<option value="">No hay horas disponibles para hoy</option>';
-    }
-}
 
-let barberoSeleccionado = null;
+    const libres = horas.filter(h => {
+        const hh = String(h).padStart(2, '0') + ':00';
+        if (ocupadas.includes(hh)) return false;
+        if (fecha < hoy) return false;
+        if (fecha === hoy && h <= horaActual) return false;
+        return true;
+    });
+
+    if (libres.length === 0) {
+        select.innerHTML = '<option value="">No hay horas disponibles ese dia</option>';
+        return;
+    }
+    select.innerHTML = libres.map(h => {
+        const h12 = h > 12 ? h - 12 : h;
+        return `<option value="${String(h).padStart(2,'0')}:00">${h12}:00 ${h < 12 ? 'AM' : 'PM'}</option>`;
+    }).join('');
+}
 
 function seleccionarBarbero(id) {
     barberoSeleccionado = id;
@@ -154,6 +189,7 @@ function seleccionarBarbero(id) {
             if (img) img.style.borderColor = b.id === id ? ROJO : '#292929';
         }
     });
+    actualizarHoras();
 }
 
 async function confirmarReserva(id_servicio) {
@@ -192,6 +228,7 @@ async function confirmarReserva(id_servicio) {
     } catch (error) {
         errorDiv.textContent = error.message;
         errorDiv.style.display = 'block';
+        actualizarHoras();
     }
 }
 
@@ -199,6 +236,7 @@ async function cargarMisReservas() {
     const usuario = getUsuario();
     if (!usuario) return;
     try {
+        await cargarBarberosLista();
         const reservas = await apiRequest('GET', `/reservas/cliente/${usuario.id}`, null, getToken());
         const contenedor = document.getElementById('misReservas');
         if (!contenedor) return;
@@ -234,8 +272,8 @@ async function cargarMisReservas() {
                             <td style="padding:12px 16px;">
                                 ${barbero ? `
                                 <div style="display:flex;align-items:center;gap:8px;">
-                                    <img src="${barbero.foto}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:1px solid ${ROJO};"
-                                         onerror="this.src='https://via.placeholder.com/30/151515/A71925?text=${barbero.nombre.charAt(0)}'">
+                                    <img src="img/${barbero.foto || 'logo.jpg'}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:1px solid ${ROJO};"
+                                         onerror="this.onerror=null;this.src='img/logo.jpg'">
                                     <span style="font-family:'Oswald';color:#F5F5F5;font-size:12px;">${barbero.nombre}</span>
                                 </div>` : `<span style="color:#A6A6A6;">${r.nombre_barbero || '—'}</span>`}
                             </td>

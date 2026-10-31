@@ -114,7 +114,6 @@
     <div id="seccionBarberos" style="display:none;margin-bottom:2rem;">
         <h4 class="section-title mb-3">Ganancias por Barbero</h4>
 
-        <!-- PORCENTAJE -->
         <div style="background:var(--card);border:1px solid var(--borde);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;">
             <label style="font-family:'Oswald';color:var(--texto-sec);font-size:11px;letter-spacing:3px;display:block;margin-bottom:10px;">DIVISION DE GANANCIAS</label>
             <div class="d-flex gap-3 flex-wrap">
@@ -152,37 +151,49 @@
     const usuario = getUsuario();
     if (usuario.rol !== 'admin') window.location.href = 'login.html';
 
-    const BARBEROS_INFO = [
-        { id: 5, nombre: 'James Mauricio Valencia', foto: 'img/james.jpg' },
-        { id: 15, nombre: 'Jordy', foto: 'img/jordy.jpg' }
-    ];
-
+    const PRECIO_POR_DEFECTO = 20000;
     let porcentajeNegocio = 50;
     let porcentajeBarbero = 50;
-    let reservasActuales = [];
+    let reservasPeriodo = [];   // todas las del rango (cualquier estado)
+    let reservasActuales = [];  // solo las Listo del rango
+    let barberosLista = [];
+    let precios = {};
+    let hayDatos = false;
+
+    // Fecha local (no UTC) en formato YYYY-MM-DD
+    function fechaLocal(d = new Date()) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const dia = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${dia}`;
+    }
 
     function setHoy() {
-        const hoy = new Date().toISOString().split('T')[0];
+        const hoy = fechaLocal();
         document.getElementById('fechaInicio').value = hoy;
         document.getElementById('fechaFin').value = hoy;
+        calcularCierres();
     }
 
     function setEstaSemana() {
         const hoy = new Date();
+        const dia = hoy.getDay() || 7; // domingo = 7
         const lunes = new Date(hoy);
-        lunes.setDate(hoy.getDate() - hoy.getDay() + 1);
+        lunes.setDate(hoy.getDate() - dia + 1);
         const domingo = new Date(lunes);
         domingo.setDate(lunes.getDate() + 6);
-        document.getElementById('fechaInicio').value = lunes.toISOString().split('T')[0];
-        document.getElementById('fechaFin').value = domingo.toISOString().split('T')[0];
+        document.getElementById('fechaInicio').value = fechaLocal(lunes);
+        document.getElementById('fechaFin').value = fechaLocal(domingo);
+        calcularCierres();
     }
 
     function setEsteMes() {
         const hoy = new Date();
         const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
         const fin = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
-        document.getElementById('fechaInicio').value = inicio.toISOString().split('T')[0];
-        document.getElementById('fechaFin').value = fin.toISOString().split('T')[0];
+        document.getElementById('fechaInicio').value = fechaLocal(inicio);
+        document.getElementById('fechaFin').value = fechaLocal(fin);
+        calcularCierres();
     }
 
     function setPorcentaje(negocio, barbero) {
@@ -199,7 +210,23 @@
         btn.style.background = 'rgba(167,25,37,0.2)';
         btn.style.borderColor = '#A71925';
         btn.style.color = '#A71925';
-        if (reservasActuales.length > 0) mostrarResultados(reservasActuales);
+        if (hayDatos) mostrarResultados();
+    }
+
+    function valorReserva(r) {
+        return precios[r.id_servicio] ?? PRECIO_POR_DEFECTO;
+    }
+
+    function listaBarberos() {
+        const mapa = {};
+        barberosLista.forEach(b => { mapa[b.id] = { id: b.id, nombre: b.nombre, foto: b.foto }; });
+        // barberos desactivados que tienen cortes en el periodo
+        reservasActuales.forEach(r => {
+            if (r.id_barbero && !mapa[r.id_barbero]) {
+                mapa[r.id_barbero] = { id: r.id_barbero, nombre: r.nombre_barbero, foto: null };
+            }
+        });
+        return Object.values(mapa);
     }
 
     async function calcularCierres() {
@@ -208,49 +235,51 @@
         if (!inicio || !fin) { alert('Selecciona un rango de fechas'); return; }
 
         try {
-            const reservas = await apiRequest('GET', '/reservas/', null, getToken());
-            reservasActuales = reservas.filter(r =>
-                r.fecha_reserva >= inicio &&
-                r.fecha_reserva <= fin &&
-                r.estado === 'Listo'
-            );
-            mostrarResultados(reservasActuales);
+            const [reservas, servicios, barberos] = await Promise.all([
+                apiRequest('GET', '/reservas/', null, getToken()),
+                apiRequest('GET', '/servicios/'),
+                apiRequest('GET', '/usuarios/barberos')
+            ]);
+            precios = {};
+            servicios.forEach(s => { precios[s.id] = Number(s.precio); });
+            barberosLista = barberos;
+
+            reservasPeriodo = reservas.filter(r => r.fecha_reserva >= inicio && r.fecha_reserva <= fin);
+            reservasActuales = reservasPeriodo.filter(r => r.estado === 'Listo');
+            hayDatos = true;
+            mostrarResultados();
         } catch(e) {
             alert('Error: ' + e.message);
         }
     }
 
-    function mostrarResultados(reservas) {
-        const todasReservas = reservasActuales;
+    function mostrarResultados() {
+        const reservas = reservasActuales;
 
-        // Stats generales
-        const totalCortes = reservas.length;
-        const totalIngresos = reservas.length * 17000;
-        document.getElementById('totalCortes').textContent = totalCortes;
+        const totalIngresos = reservas.reduce((suma, r) => suma + valorReserva(r), 0);
+        document.getElementById('totalCortes').textContent = reservas.length;
         document.getElementById('totalIngresos').textContent = '$' + totalIngresos.toLocaleString();
-
-        // Pendientes y cancelados del periodo
-        const inicio = document.getElementById('fechaInicio').value;
-        const fin = document.getElementById('fechaFin').value;
+        document.getElementById('totalPendientes').textContent =
+            reservasPeriodo.filter(r => r.estado === 'Pendiente' || r.estado === 'En Curso').length;
+        document.getElementById('totalCancelados').textContent =
+            reservasPeriodo.filter(r => r.estado === 'Cancelado').length;
 
         document.getElementById('statsGenerales').style.display = 'flex';
-        document.getElementById('statsGenerales').className = 'row g-3 mb-4';
         document.getElementById('seccionBarberos').style.display = 'block';
         document.getElementById('seccionDetalle').style.display = 'block';
 
-        // Cards por barbero
         const cardsBarberos = document.getElementById('cardsBarberos');
-        cardsBarberos.innerHTML = BARBEROS_INFO.map(b => {
+        cardsBarberos.innerHTML = listaBarberos().map(b => {
             const cortesB = reservas.filter(r => r.id_barbero === b.id);
-            const ingresosB = cortesB.length * 17000;
+            const ingresosB = cortesB.reduce((suma, r) => suma + valorReserva(r), 0);
             const gananciaB = Math.round(ingresosB * porcentajeBarbero / 100);
             const gananciaNegocio = Math.round(ingresosB * porcentajeNegocio / 100);
             return `
                 <div class="col-md-6">
                     <div style="background:var(--card);border:1px solid var(--borde);border-radius:8px;padding:1.5rem;">
                         <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;">
-                            <img src="${b.foto}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid #A71925;"
-                                 onerror="this.src='https://via.placeholder.com/50/151515/A71925?text=${b.nombre.charAt(0)}'">
+                            <img src="img/${b.foto || 'logo.jpg'}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid #A71925;background:#0D0D0D;"
+                                 onerror="this.onerror=null;this.src='img/logo.jpg'">
                             <div>
                                 <h5 style="font-family:'Bebas Neue';letter-spacing:3px;color:var(--texto);margin:0;font-size:1.2rem;">${b.nombre}</h5>
                                 <p style="font-family:'Oswald';color:#A71925;font-size:11px;letter-spacing:2px;margin:0;">BARBERO</p>
@@ -281,7 +310,6 @@
             `;
         }).join('');
 
-        // Tabla detalle
         document.getElementById('tablaDetalle').innerHTML = reservas.length === 0 ?
             `<div style="text-align:center;padding:2rem;color:var(--texto-sec);font-family:'Oswald';">No hay cortes completados en este periodo</div>` :
             `<div style="background:var(--card);border:1px solid var(--borde);border-radius:8px;overflow-x:auto;">
@@ -299,16 +327,16 @@
                     </thead>
                     <tbody>
                     ${reservas.map(r => {
-                        const barbero = BARBEROS_INFO.find(b => b.id === r.id_barbero);
-                        const ganancia = Math.round(17000 * porcentajeBarbero / 100);
+                        const valor = valorReserva(r);
+                        const ganancia = Math.round(valor * porcentajeBarbero / 100);
                         return `
                         <tr style="border-bottom:1px solid #1a1a1a;">
                             <td style="padding:12px 16px;color:#F5F5F5;font-family:'Rajdhani';">${r.id}</td>
                             <td style="padding:12px 16px;color:#F5F5F5;font-family:'Oswald';font-size:13px;">${r.nombre_cliente}</td>
-                            <td style="padding:12px 16px;color:#F5F5F5;font-family:'Oswald';font-size:13px;">${barbero ? barbero.nombre : r.nombre_barbero}</td>
+                            <td style="padding:12px 16px;color:#F5F5F5;font-family:'Oswald';font-size:13px;">${r.nombre_barbero}</td>
                             <td style="padding:12px 16px;color:#A6A6A6;font-family:'Rajdhani';white-space:nowrap;">${r.fecha_reserva}</td>
                             <td style="padding:12px 16px;color:#A6A6A6;font-family:'Rajdhani';white-space:nowrap;">${r.hora_reserva}</td>
-                            <td style="padding:12px 16px;font-family:'Bebas Neue';font-size:1.2rem;color:#A71925;">$17.000</td>
+                            <td style="padding:12px 16px;font-family:'Bebas Neue';font-size:1.2rem;color:#A71925;">$${valor.toLocaleString()}</td>
                             <td style="padding:12px 16px;font-family:'Bebas Neue';font-size:1.2rem;color:#25D366;">$${ganancia.toLocaleString()}</td>
                         </tr>`;
                     }).join('')}
@@ -317,7 +345,7 @@
             </div>`;
     }
 
-    // Establecer mes actual por defecto
+    // Al abrir: mes actual y calcula solo
     setEsteMes();
 </script>
 </body>
