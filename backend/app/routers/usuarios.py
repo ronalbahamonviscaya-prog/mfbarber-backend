@@ -52,13 +52,43 @@ def login(datos: LoginDatos, db: Session = Depends(get_db)):
 def listar(db: Session = Depends(get_db)):
     return db.query(Usuario).all()
 
-# IMPORTANTE: esta ruta debe ir ANTES de "/{id}"
+# IMPORTANTE: las rutas /barberos deben ir ANTES de "/{id}"
 @router.get("/barberos", response_model=list[UsuarioRespuesta])
 def listar_barberos(db: Session = Depends(get_db)):
     return db.query(Usuario).filter(
         Usuario.rol == "barbero",
         Usuario.activo == True
     ).all()
+
+@router.post("/barberos", response_model=UsuarioRespuesta, status_code=201)
+def crear_barbero(datos: UsuarioCrear, db: Session = Depends(get_db)):
+    existente = db.query(Usuario).filter(Usuario.email == datos.email).first()
+    if existente:
+        raise HTTPException(status_code=400, detail="El email ya esta registrado")
+    barbero = Usuario(
+        rol="barbero",
+        nombre=datos.nombre,
+        email=datos.email,
+        password=generate_password_hash(datos.password),
+        telefono=datos.telefono,
+        direccion=datos.direccion
+    )
+    db.add(barbero)
+    db.commit()
+    db.refresh(barbero)
+    return barbero
+
+@router.delete("/barberos/{id}")
+def desactivar_barbero(id: int, db: Session = Depends(get_db)):
+    barbero = db.query(Usuario).filter(
+        Usuario.id == id,
+        Usuario.rol == "barbero"
+    ).first()
+    if not barbero:
+        raise HTTPException(status_code=404, detail="Barbero no encontrado")
+    barbero.activo = False
+    db.commit()
+    return {"mensaje": "Barbero desactivado"}
 
 @router.get("/{id}", response_model=UsuarioRespuesta)
 def obtener(id: int, db: Session = Depends(get_db)):
