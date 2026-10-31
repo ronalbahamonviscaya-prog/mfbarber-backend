@@ -9,15 +9,17 @@ class UsuarioCrear(BaseModel):
     password: str
     telefono: Optional[str] = None
     direccion: Optional[str] = None
+    foto: Optional[str] = None
 
 class UsuarioRespuesta(BaseModel):
     id: int
     rol: str
     nombre: str
     email: str
-    telefono: Optional[str]
+    telefono: Optional[str] = None
+    foto: Optional[str] = None
     activo: bool
-    fecha_registro: Optional[datetime]
+    fecha_registro: Optional[datetime] = None
     class Config:
         from_attributes = True
 

@@ -14,6 +14,7 @@ class Usuario(Base):
     direccion = Column(Text)
     activo = Column(Boolean, default=True)
     fecha_registro = Column(DateTime, server_default=func.now())
+    foto = Column(String(255), nullable=True)
     reservas = relationship("Reserva", back_populates="cliente", foreign_keys="Reserva.id_cliente")
 
 class Servicio(Base):

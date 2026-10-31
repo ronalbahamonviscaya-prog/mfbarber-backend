@@ -71,7 +71,8 @@ def crear_barbero(datos: UsuarioCrear, db: Session = Depends(get_db)):
         email=datos.email,
         password=generate_password_hash(datos.password),
         telefono=datos.telefono,
-        direccion=datos.direccion
+        direccion=datos.direccion,
+        foto=datos.foto
     )
     db.add(barbero)
     db.commit()
