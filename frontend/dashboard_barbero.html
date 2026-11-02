@@ -15,7 +15,7 @@
         .navbar-brand { display:flex;align-items:center;gap:12px;text-decoration:none; }
         .navbar-brand img { height:40px;filter:invert(1); }
         .navbar-brand span { font-family:'Bebas Neue';font-size:1.5rem;letter-spacing:4px;color:var(--texto); }
-        .foto-barbero-nav { width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--rojo); }
+        .foto-barbero-nav { width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--rojo);background:#0D0D0D; }
         .btn-salir { background:transparent;border:1px solid var(--borde);color:var(--texto-sec);font-family:'Oswald';letter-spacing:2px;font-size:12px;padding:6px 15px;border-radius:4px;transition:all 0.3s;cursor:pointer; }
         .btn-salir:hover { border-color:var(--rojo);color:var(--rojo); }
         .stat-card { background:var(--card);border:1px solid var(--borde);border-radius:8px;padding:1.5rem;text-align:center;transition:all 0.3s; }
@@ -41,8 +41,8 @@
     </a>
     <div class="d-flex align-items-center gap-3">
         <span style="font-family:'Oswald';color:var(--texto-sec);font-size:13px;display:flex;align-items:center;gap:8px;">
-            <img id="fotoBarbero" class="foto-barbero-nav" src="" alt="foto"
-                 onerror="this.src='https://via.placeholder.com/32/151515/A71925?text=B'">
+            <img id="fotoBarbero" class="foto-barbero-nav" src="img/logo.jpg" alt="foto"
+                 onerror="this.onerror=null;this.src='img/logo.jpg'">
             <span id="nombreBarbero"></span>
         </span>
         <button onclick="cerrarSesion()" class="btn-salir"><i class="bi bi-box-arrow-right me-1"></i>Salir</button>
@@ -85,8 +85,8 @@
     <div style="background:var(--card);border:1px solid var(--borde);border-radius:8px;padding:1rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
         <span style="font-family:'Oswald';color:var(--texto-sec);font-size:11px;letter-spacing:3px;">TU PORCENTAJE:</span>
         <span id="porcentajeLabel" style="font-family:'Bebas Neue';font-size:1.5rem;color:var(--rojo);">50%</span>
-        <span style="font-family:'Oswald';color:var(--texto-sec);font-size:12px;">de cada corte de $17.000 =</span>
-        <span id="valorPorCorte" style="font-family:'Bebas Neue';font-size:1.5rem;color:#25D366;">$8.500</span>
+        <span style="font-family:'Oswald';color:var(--texto-sec);font-size:12px;">de cada corte de <span id="precioLabel">$20.000</span> =</span>
+        <span id="valorPorCorte" style="font-family:'Bebas Neue';font-size:1.5rem;color:#25D366;">$10.000</span>
         <span style="font-family:'Oswald';color:var(--texto-sec);font-size:12px;">por corte</span>
     </div>
 
@@ -134,30 +134,57 @@
     document.getElementById('nombreBarbero').textContent = usuario.nombre;
     document.getElementById('nombreBienvenida').textContent = usuario.nombre;
 
-    // Foto del barbero segun su id (usa el array BARBEROS de servicios.js)
-    const barberoActual = BARBEROS.find(b => b.id === usuario.id);
-    document.getElementById('fotoBarbero').src = barberoActual ? barberoActual.foto : 'img/logo.jpg';
-
     const PORCENTAJE_BARBERO = 50;
-    const PRECIO_CORTE = 17000;
-    const gananciaPorCorte = Math.round(PRECIO_CORTE * PORCENTAJE_BARBERO / 100);
+    const PRECIO_POR_DEFECTO = 20000;
+    let precios = {};
 
     document.getElementById('porcentajeLabel').textContent = PORCENTAJE_BARBERO + '%';
-    document.getElementById('valorPorCorte').textContent = '$' + gananciaPorCorte.toLocaleString();
+
+    function valorReserva(r) {
+        return precios[r.id_servicio] ?? PRECIO_POR_DEFECTO;
+    }
+
+    function gananciaReserva(r) {
+        return Math.round(valorReserva(r) * PORCENTAJE_BARBERO / 100);
+    }
+
+    // Foto del barbero tomada de la base de datos
+    async function cargarFoto() {
+        try {
+            const datos = await apiRequest('GET', `/usuarios/${usuario.id}`, null, getToken());
+            const foto = datos.foto || 'logo.jpg';
+            document.getElementById('fotoBarbero').src = 'img/' + foto;
+        } catch (e) {
+            document.getElementById('fotoBarbero').src = 'img/logo.jpg';
+        }
+    }
 
     async function cargarDatos() {
         try {
-            const reservas = await apiRequest('GET', `/reservas/barbero/${usuario.id}`, null, getToken());
-            const hoy = new Date().toISOString().split('T')[0];
+            const [reservas, servicios] = await Promise.all([
+                apiRequest('GET', `/reservas/barbero/${usuario.id}`, null, getToken()),
+                apiRequest('GET', '/servicios/')
+            ]);
+            precios = {};
+            servicios.forEach(s => { precios[s.id] = Number(s.precio); });
+
+            // Precio de referencia en la barra de porcentaje
+            const precioRef = servicios.length ? Number(servicios[0].precio) : PRECIO_POR_DEFECTO;
+            document.getElementById('precioLabel').textContent = '$' + precioRef.toLocaleString();
+            document.getElementById('valorPorCorte').textContent =
+                '$' + Math.round(precioRef * PORCENTAJE_BARBERO / 100).toLocaleString();
+
+            const hoy = fechaLocal();
             const mesActual = hoy.substring(0, 7);
 
             const listasHoy = reservas.filter(r => r.estado === 'Listo' && r.fecha_reserva.startsWith(hoy));
             const listasMes = reservas.filter(r => r.estado === 'Listo' && r.fecha_reserva.startsWith(mesActual));
+            const sumaGanancia = lista => lista.reduce((s, r) => s + gananciaReserva(r), 0);
 
             document.getElementById('cortesHoy').textContent = listasHoy.length;
-            document.getElementById('gananciasHoy').textContent = '$' + (listasHoy.length * gananciaPorCorte).toLocaleString();
+            document.getElementById('gananciasHoy').textContent = '$' + sumaGanancia(listasHoy).toLocaleString();
             document.getElementById('cortesMes').textContent = listasMes.length;
-            document.getElementById('gananciasMes').textContent = '$' + (listasMes.length * gananciaPorCorte).toLocaleString();
+            document.getElementById('gananciasMes').textContent = '$' + sumaGanancia(listasMes).toLocaleString();
 
             cargarTodasReservas();
             cargarHistorial(reservas);
@@ -166,7 +193,7 @@
         }
     }
 
-    async function cargarHistorial(reservas) {
+    function cargarHistorial(reservas) {
         const completadas = reservas.filter(r => r.estado === 'Listo');
         const contenedor = document.getElementById('tablaHistorial');
 
@@ -197,8 +224,8 @@
                             <td style="padding:12px 16px;color:#F5F5F5;font-family:'Oswald';font-size:13px;">${r.nombre_cliente}</td>
                             <td style="padding:12px 16px;color:#A6A6A6;font-family:'Rajdhani';white-space:nowrap;">${r.fecha_reserva}</td>
                             <td style="padding:12px 16px;color:#A6A6A6;font-family:'Rajdhani';white-space:nowrap;">${r.hora_reserva}</td>
-                            <td style="padding:12px 16px;font-family:'Bebas Neue';font-size:1.2rem;color:#A71925;">$${PRECIO_CORTE.toLocaleString()}</td>
-                            <td style="padding:12px 16px;font-family:'Bebas Neue';font-size:1.2rem;color:#25D366;">$${gananciaPorCorte.toLocaleString()}</td>
+                            <td style="padding:12px 16px;font-family:'Bebas Neue';font-size:1.2rem;color:#A71925;">$${valorReserva(r).toLocaleString()}</td>
+                            <td style="padding:12px 16px;font-family:'Bebas Neue';font-size:1.2rem;color:#25D366;">$${gananciaReserva(r).toLocaleString()}</td>
                         </tr>
                     `).join('')}
                     </tbody>
@@ -213,6 +240,7 @@
         document.getElementById('tabHistorial').classList.toggle('active', tab === 'historial');
     }
 
+    cargarFoto();
     cargarDatos();
 </script>
 </body>
